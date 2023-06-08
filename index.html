@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nim</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="header">
+        <div class="dysk"></div>
+        <div class="dysk"></div>
+        <div class="dysk"></div>
+        <h1>Game of Nim</h1>
+        <div class="dysk"></div>
+        <div class="dysk"></div>
+        <div class="dysk"></div>
+    </div>
+    <div id="p1">
+        <h2>Player 1</h2>
+    </div>
+    <div id="game"></div>
+    <div id="p2">
+        <h2>Player 2</h2>
+    </div>
+    <footer>
+        © Patryk Bożek 2023 
+    </footer>
+    <script>
+        rows = [];
+        player_move = 1;
+        num_of_rows = 0;
+        function game_settings() {
+            document.getElementById("p1").innerHTML = "";
+            document.getElementById("p2").innerHTML = "";
+            document.getElementById("game").innerHTML = "";
+            form_new = document.createElement("Form");
+            form_new.id = "ustawienia"
+            form_new.innerHTML = '<label for="num_of_rows">Enter a number of piles(2-5):</label><input type="number" max="5" min="2" id="num_of_rows" required><br><button type="button" onclick="start_game()">Play</button>';
+            document.getElementById("game").appendChild(form_new);
+        }
+
+        window.onload = game_settings();
+
+
+        function start_game() {
+            let num_local = Number(document.getElementById("num_of_rows").value)
+            if (isNaN(num_local) || num_local < 2 || num_local > 5){
+                do {
+                    num_local = Number(prompt("Number not valid!! Enter a number of piles(2-5):"))
+                } while (isNaN(num_local) || num_local < 2 || num_local > 5);
+            }
+            document.getElementById("game").innerHTML = "";
+            var x = -1;
+            table = document.createElement("div");
+            table.id = "gra"
+            for(var i = 0; i < num_local; i++){
+                tr = document.createElement("div");
+                tr.classList.add("tr");
+                tr.id = "rr-"+i;
+                x += 2;
+                rows[i] = x;
+                for(var xx = 0;xx < x; xx++){
+                    td = document.createElement("div");
+                    td.classList.add("dysk");
+                    tr.appendChild(td);
+                }
+                table.appendChild(tr);
+            }
+            document.getElementById("game").appendChild(table);
+            num_of_rows = num_local;
+            player_ui(1, num_of_rows);
+            player_ui(2, num_of_rows);
+        }
+
+
+        function player_ui(player_id, num_of_rows) {
+            document.getElementById("p"+player_id).innerHTML = "<h2> Player "+player_id+"</h2>"
+            choices = document.createElement("div");
+            choices.classList.add("choice_ui")
+            for(var i = 0; i < num_of_rows; i++){
+                choice = document.createElement("div");
+                choice.innerHTML = "<h3>Pile: "+i+"</h3>";
+                ci = document.createElement("input");
+                ci.type = "number";
+                ci.min = 1;
+                if(rows[i] == 0 || player_move != player_id){
+                    ci.disabled = true;
+                }
+                else{
+                    ci.max = rows[i];
+                }
+                ci.id = "c-p"+player_id+"-g"+i;
+                ci.placeholder = rows[i]+" left"
+                choice.appendChild(ci)
+                cs = document.createElement("button");
+                cs.innerText = "Take" 
+                cs.setAttribute("onclick","play_game('"+"c-p"+player_id+"-g"+i+"')"+";");
+                if(rows[i] == 0 || player_move != player_id){
+                    cs.disabled = true;
+                }
+                choice.appendChild(cs);
+                choices.appendChild(choice);
+            }
+            document.getElementById("p"+player_id).appendChild(choices);
+        }
+
+
+        function play_game(action_id) {
+            let sp = action_id.split("-");
+            row = Number(sp[2].split("")[1]);
+            num = Number(document.getElementById(action_id).value);
+            curr_play = Number(sp[1].split("")[1])
+            if (!validate_move(row, num, curr_play)){
+                alert("Action not valid!!!");
+                return;
+            }
+            make_move(row, num);
+            if (end_game()){
+                game_settings();
+            }
+            else{
+                player_ui(1, num_of_rows);
+                player_ui(2, num_of_rows);
+            }
+        }
+
+        function validate_move(row, num, player) {
+            if((rows[row] - num >= 0) && (num != 0) && (player_move == player)){
+                return true;
+            }
+            return false;
+        }
+
+        function make_move(row, num) {
+            rows[row] -= num;
+            let x = num;
+            for(child of document.getElementById("rr-"+row).children){
+                if (x <= 0){
+                    break;
+                }
+                if (child.classList.contains("zebrane")){
+                    continue;
+                }
+                else{
+                    x--;
+                    child.classList.add("zebrane");
+                }
+            }
+        }
+
+        function end_game() {
+            let sum = 0;
+            rows.forEach(row => {
+                sum += row;
+            });
+            if(sum == 0){
+                if(player_move == 1){
+                    alert("Player 2 has won");
+                    return true;
+                }
+                else{
+                    alert("Player 1 has won");
+                    return true;
+                }
+            }
+            else if(sum == 1){
+                alert("Player "+player_move+" has won");
+                return true;
+            }
+            else{
+                if(player_move == 1){
+                    player_move = 2;
+                }
+                else{
+                    player_move = 1;
+                }
+            }
+            return false;
+        }
+    </script>
+</body>
+</html>
